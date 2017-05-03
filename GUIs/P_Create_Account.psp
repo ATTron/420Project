@@ -1,0 +1,135 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html>
+<%@page language= "PL/SQL"%>
+<%@plsql procedure=  "project_create_account"%>
+<%@plsql parameter= "h_type" default="null" %>
+<%@plsql parameter= "h_name" default="null" %>
+<Head>
+  <title>Account Creation</Title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+		<style>
+		body {background-color: #f2f2f2;}
+		.col-md-4 {background-color: #ffffff !important;
+				   padding: 25px}
+		.jumbotron {background-color: #ffc266 !important;}
+		</style>
+</Head>
+
+<body>
+<div class="jumbotron jumbotron-fluid text-center">
+		<h1 class="display-3">Sabertooth Home Solutions</h1>
+		<!-- Navigation Bar Links -->
+		<nav class="navbar navbar-default">
+			<div class="container-fluid">
+				<div class="navbar-header">
+					<% if h_type IS NOT NULL then %>
+						<a class="navbar-brand" href="#" onclick="document.forms['reportForm'].submit();"><img src="https://img.clipartfest.com/09e7935b4ef1854d0921de66266c785c_chicken-clipart-sabre-engraving-clipart-no-background_1644-946.png" style="max-width:95px;margin-top:-18px;"/></a>
+					<% else %>
+						<a class="navbar-brand" href="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.P_Start_Page"><img src="https://img.clipartfest.com/09e7935b4ef1854d0921de66266c785c_chicken-clipart-sabre-engraving-clipart-no-background_1644-946.png" style="max-width:95px;margin-top:-18px;"/></a>
+					<% end if; %>
+				</div>
+				<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+      				<ul class="nav navbar-nav">
+        				<li><a href="#" onclick="document.forms['plugForm'].submit();">Get Plug Info</a></li>
+						<li><a href="#" onclick="document.forms['deviceForm'].submit();">Attach A Device</a></li>	
+						<li><a href="#" onclick="document.forms['setupForm'].submit();">Configure System</a></li>
+						<% if h_name IS NOT NULL then %>
+							<li><a><%= h_name %></a></li>
+							<% if h_type = 1 then %>
+								<li><a href="#" onclick="document.forms['accountForm'].submit();">Accounts</a></li>
+							<% end if; %>
+							<li><a href="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.P_Start_Page">Log Out</a></li>
+						<% else %>
+							<li><a href="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.my_log_in">Log In</a></li>
+						<% end if; %>
+						<li><a href="#" onclick="document.forms['createForm'].submit();">Create New Account</a></li>
+        			</ul>
+			</div>
+		</nav>
+		</div>
+  <div class="col-md-4 col-md-offset-4">
+  <h1 style="margin-bottom: -15px;"><center>Create Account</center></h1>
+  <form action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.P_Submitted_Page" method="POST">
+    <table class="table table-hover" border = 3>
+      <thead align ="center">
+	
+	<th colspan=2><h1><center>USER INFORMATION</center></h1></th>
+	
+	<tr><td>Name:</td> <td><input type = "text" name = "Persons_Name"/></td></tr><br/>
+	<tr><td>User Name:</td> <td><input type = "text" name = "Account_User_Name"/></td></tr> <br/>
+	<tr><td>Password:</td> <td><input type = "password" name = "users_password"/></td></tr> <br/>
+	<tr><td>Email:</td> <td><input type = "text" name = "users_email"/></td></tr><br/>	
+    </table>
+    <div class="form-group">
+    <h3><center>Select an image to be used for your security image</center></h3>
+    
+    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/fb/Welchcorgipembroke.JPG/1920px-Welchcorgipembroke.JPG" alt="corgi" style="width:34px;height:28px;">
+    <input type="radio" name="image" value="animal_1" /> Corgi
+
+	<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/ae/AfricanWildCat.jpg/1920px-AfricanWildCat.jpg" alt="cat" style="width:34px;height:28px;">
+    <input type="radio" name="image" value="animal_2" /> Cat
+
+    <img src="https://upload.wikimedia.org/wikipedia/commons/3/3b/Rabbit_in_montana.jpg" alt="rabbit" style="max-width:34px;height:28px;">
+    <input type="radio" name="image" value="animal_3" /> Rabbit<br/><br/>
+
+    <img src="https://upload.wikimedia.org/wikipedia/commons/b/b3/Dolphind.jpg" alt="dolphin" style="width:34px;height:28px;">
+    <input type="radio" name="image" value="animal_4" /> Dolphin
+    
+	 <img src = "https://upload.wikimedia.org/wikipedia/commons/7/73/Lion_waiting_in_Namibia.jpg" alt = "lion" style ="width:34px;height:28px;">
+    <input type ="radio" name ="image" value ="animal_5" /> Lion
+	
+	</div>
+	<div class="form-group">
+    <select class="form-control" name = "user_question">
+	
+      <option value="What is your mothers middle name?">What is your mothers middle name?</option>
+      <option value="What was the name of your first pet?">What was the name of your first pet?</option>
+      <option value="What was the street you lived on in second grade?">What was the street you lived on in second grade?</option>
+      <option value="What was the first job you ever dreamed of having?">What was the first job you ever dreamed of having?</option>
+    </select>
+	</div>
+    <div class="form-group">
+	Answer to your security question:<input type = "text"  class="form-control" name = "answer_to_security_question"/>
+	</div>
+
+	<% if h_type = 1 then %>
+    <div class="form-group">
+	<input type="radio" name="new_acc_type" value="0"/> User
+	<input type="radio" name="new_acc_type" value="1"/> Admin
+	</div>
+	<% else %>
+	<% end if; %>
+	<input type="hidden" name="h_type" value=<%=h_type%>>
+	<input type="hidden" name="h_name" value=<%=h_name%>>
+    <input type ="submit" class="btn btn-primary" value ="Submit" name = "Submit_Button"/>
+  </form>
+  </div>
+  <form name="plugForm" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.smart_plug_info_gui" method="POST">
+						<input type="hidden" name="h_type" value=<%=h_type%>>
+						<input type="hidden" name="h_name" value=<%=h_name%>>
+						</form>
+		<form name="deviceForm" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.connect_appliance_gui" method="POST">
+						<input type="hidden" name="h_type" value=<%=h_type%>>
+						<input type="hidden" name="h_name" value=<%=h_name%>>
+						</form>
+		<form name="setupForm" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.systemSetup" method="POST">
+						<input type="hidden" name="h_type" value=<%=h_type%>>
+						<input type="hidden" name="h_name" value=<%=h_name%>>
+						</form>
+		<form name="accountForm" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.switch_account_type" method="POST">
+						<input type="hidden" name="h_type" value=<%=h_type%>><input type="hidden" name="h_name" value=<%=h_name%>>
+						</form>
+		<form name="createForm" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.project_create_account" method="POST">
+						<input type="hidden" name="h_type" value=<%=h_type%>><input type="hidden" name="h_name" value=<%=h_name%>>
+						</form>
+		<form name="reportForm" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.report_splash" method="POST">
+						<input type="hidden" name="h_type" value=<%=h_type%>><input type="hidden" name="h_name" value=<%=h_name%>>
+						</form>
+</body>
+</html>
+
+
+
+
+

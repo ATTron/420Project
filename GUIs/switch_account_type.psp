@@ -1,0 +1,117 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<%@page language="PL/SQL"%>
+<%@plsql procedure="switch_account_type"%>
+<%@plsql parameter= "hidden_type" default="null" %>
+<%@plsql parameter= "hidden_name" default="null" %>
+<%@plsql parameter= "h_type" default="null" %>
+<%@plsql parameter= "h_name" default="null" %>
+<%! cursor user_cr is select unique user_name from account; %>
+<%! user_row user_cr%rowtype; %>
+<head>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+	<style>
+		body {background-color: #f2f2f2;}
+		.col-md-4 {background-color: #ffffff !important;
+				   padding: 25px;}
+		.jumbotron {background-color: #ffc266 !important;}
+		</style>
+    <title>GUI4 - Switch Account Type</title>
+</head>
+
+<body>
+<div class="jumbotron jumbotron-fluid text-center">
+		<h1 class="display-3">Sabertooth Home Solutions</h1>
+		<!-- Navigation Bar Links -->
+		<nav class="navbar navbar-default">
+			<div class="container-fluid">
+				<div class="navbar-header">
+					<% if h_type IS NOT NULL then %>
+						<a class="navbar-brand" href="#" onclick="document.forms['reportForm'].submit();"><img src="https://img.clipartfest.com/09e7935b4ef1854d0921de66266c785c_chicken-clipart-sabre-engraving-clipart-no-background_1644-946.png" style="max-width:95px;margin-top:-18px;"/></a>
+					<% else %>
+						<a class="navbar-brand" href="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.P_Start_Page"><img src="https://img.clipartfest.com/09e7935b4ef1854d0921de66266c785c_chicken-clipart-sabre-engraving-clipart-no-background_1644-946.png" style="max-width:95px;margin-top:-18px;"/></a>
+					<% end if; %>
+				</div>
+				<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+      				<ul class="nav navbar-nav">
+        				<li><a href="#" onclick="document.forms['plugForm'].submit();">Get Plug Info</a></li>
+						<li><a href="#" onclick="document.forms['deviceForm'].submit();">Attach A Device</a></li>	
+						<li><a href="#" onclick="document.forms['setupForm'].submit();">Configure System</a></li>
+						<% if h_name IS NOT NULL then %>
+							<li><a><%= h_name %></a></li>
+							<% if h_type = 1 then %>
+								<li><a href="#" onclick="document.forms['accountForm'].submit();">Accounts</a></li>
+							<% end if; %>
+							<li><a href="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.P_Start_Page">Log Out</a></li>
+						<% else %>
+							<li><a href="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.my_log_in">Log In</a></li>
+						<% end if; %>
+						<li><a href="#" onclick="document.forms['createForm'].submit();">Create New Account</a></li>
+        			</ul>
+			</div>
+		</nav>
+		</div>
+<!-- Start Page Content -->
+<!--List out the usernames -->        
+<div class="col-md-4 col-md-offset-4">
+<% if h_type = 1 then %>
+<b>Username Listings:</b>
+	<br></br>
+	</select>
+		<%for user_row in user_cr loop%>
+			<option value = "<%= user_row.user_name%>"><%= user_row.user_name%></option>
+		<%end loop;%>
+    </select>
+	<br/>
+<form action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.display_account_type" method="POST">
+
+<div class="form-group"<b>Instructions:</b> <br /><br />
+1) Select a user to switch their account privileges. <br /><br />
+2) Proceed to select the user's new account type.
+</div>
+<div class="form-group">
+Pick Username(s) to change:<br/>
+<%for user_row in user_cr loop%>
+	<input type="checkbox" name="user_input" value = "<%= user_row.user_name%>"><%= user_row.user_name%><br/>
+<%end loop;%>
+</div>
+
+<div class="form-check form-check-inline">
+Select Account Type:<br/> <input type="radio" class="form-check-input" name="account_types_text" value="Administrator"/> Administrator
+                     <input type="radio" class="form-check-input" name="account_types_text" value="Regular User"/> Regular User
+</div>
+<input type="hidden" name="h_type" value=<%=h_type%>>
+<input type="hidden" name="h_name" value=<%=h_name%>>
+                     <input type="submit" class="btn btn-primary" name="output_button" value="Submit"/>
+</form>
+<% else %>
+<p>You are not allowed access to this page as a User!</p>
+<% end if; %>
+</div>
+<form name="plugForm" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.smart_plug_info_gui" method="POST">
+						<input type="hidden" name="h_type" value=<%=h_type%>>
+						<input type="hidden" name="h_name" value=<%=h_name%>>
+						</form>
+		<form name="deviceForm" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.connect_appliance_gui" method="POST">
+						<input type="hidden" name="h_type" value=<%=h_type%>>
+						<input type="hidden" name="h_name" value=<%=h_name%>>
+						</form>
+		<form name="setupForm" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.systemSetup" method="POST">
+						<input type="hidden" name="h_type" value=<%=h_type%>>
+						<input type="hidden" name="h_name" value=<%=h_name%>>
+						</form>
+		<form name="accountForm" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.switch_account_type" method="POST">
+						<input type="hidden" name="h_type" value=<%=h_type%>><input type="hidden" name="h_name" value=<%=h_name%>>
+						</form>
+		<form name="createForm" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.project_create_account" method="POST">
+						<input type="hidden" name="h_type" value=<%=h_type%>><input type="hidden" name="h_name" value=<%=h_name%>>
+						</form>
+		<form name="reportForm" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.report_splash" method="POST">
+						<input type="hidden" name="h_type" value=<%=h_type%>><input type="hidden" name="h_name" value=<%=h_name%>>
+						</form>
+<% exception
+    when others then %>
+    <%= sqlerrm%>
+<!-- End Page Content -->
+</body>
+</html>

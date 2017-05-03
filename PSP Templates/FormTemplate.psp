@@ -1,0 +1,37 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<title>Form Testing/Template</title>
+	</head>
+	<body>
+		<!-- Drop-down template -->
+		<h1>Drop-Down Example</h1>
+		<form>
+			<select name = "plugs">
+				<option value = "Default">Please select a registered plug
+				<option value = "PS1">Powerstrip 1
+				<option value = "PS2">Powerstrip 2
+				<option value = "PS3">Powerstrip 3
+				<option value = "PS4">Powerstrip 4
+				<option value = "PS5">Powerstrip 5
+			</select>
+		</form>
+		<br>
+		<!-- Radio Button Template -->
+		<h1>Radio Button Example</h1>
+		<form>
+			<input type="radio" name="secImages" value="sec1"><img src="http://security.cs.umass.edu/cyber-biglock.jpg" style="width:100px;hieght:100px;"><br>
+			<input type="radio" name="secImages" value="sec2"><img src="https://redcloudtechnology.com/wp-content/uploads/2016/10/5.jpeg" style="width:100px;hieght:100px;"><br>
+			<input type="radio" name="secImages" value="sec3"><img src="http://www.hotelnewsme.com/wp-content/uploads/2016/05/Bamboozle_Linux_Security_Hardning.jpg" style="width:100px;hieght:100px;"><br>
+			<input type="radio" name="secImages" value="sec4"><img src="https://d.wildapricot.net/images/newsblog/bigstock-secured-data-transfer-50265320.jpg?sfvrsn=0" style="width:100px;hieght:100px;"><br>
+		</form>
+		<br>
+		<!-- Text Input Template-->
+		<h1>Text Field Example</h1>
+		<form>
+			User Name: <input type="text" name="u_name"><br>
+			Password: <input type="text" name="password"><br>
+			<input type="submit" value="Create User">
+		</form>
+	</body>
+</html>

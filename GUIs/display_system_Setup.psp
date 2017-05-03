@@ -1,0 +1,185 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<%@page language="PL/SQL"%>
+<%@plsql procedure="display_systemSetup"%>
+<%@plsql parameter="discount_days" type="owa_util.ident_arr"%>
+<%@plsql parameter="appliance_type" type="owa_util.ident_arr"%>  
+<%@plsql parameter="rate_kWh_text" default="null" %>
+<%@plsql parameter="plugs_text" type="owa_util.ident_arr"%>
+<%@plsql parameter="submit" default="null"%>
+<%@plsql parameter= "h_type" default="null" %>
+<%@plsql parameter= "h_name" default="null" %>
+<%!bad_input exception; %>
+<%!bad_inputKW exception; %>
+<%!bad_inputD exception; %>
+
+<head>
+    <div align = "center">
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+		<style>
+			
+			body {background-color: #f2f2f2;}
+			.col-md-4 {background-color: #ffffff !important;
+				   padding: 25px}
+			.jumbotron {background-color: #ffc266 !important;}		
+		</style>
+    <title>System Setup Completed</title>
+</head>
+<body>
+
+<div class="jumbotron jumbotron-fluid text-center">
+		<h1 class="display-3">Sabertooth Home Solutions</h1>
+		<!-- Navigation Bar Links -->
+		<nav class="navbar navbar-default">
+			<div class="container-fluid">
+				<div class="navbar-header">
+					<% if h_type IS NOT NULL then %>
+						<a class="navbar-brand" href="#" onclick="document.forms['reportForm'].submit();"><img src="https://img.clipartfest.com/09e7935b4ef1854d0921de66266c785c_chicken-clipart-sabre-engraving-clipart-no-background_1644-946.png" style="max-width:95px;margin-top:-18px;"/></a>
+					<% else %>
+						<a class="navbar-brand" href="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.P_Start_Page"><img src="https://img.clipartfest.com/09e7935b4ef1854d0921de66266c785c_chicken-clipart-sabre-engraving-clipart-no-background_1644-946.png" style="max-width:95px;margin-top:-18px;"/></a>
+					<% end if; %>
+				</div>
+				<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+      				<ul class="nav navbar-nav">
+        				<li><a href="#" onclick="document.forms['plugForm'].submit();">Get Plug Info</a></li>
+						<li><a href="#" onclick="document.forms['deviceForm'].submit();">Attach A Device</a></li>	
+						<li><a href="#" onclick="document.forms['setupForm'].submit();">Configure System</a></li>
+						<% if h_name IS NOT NULL then %>
+							<li><a><%= h_name %></a></li>
+							<li><a href="#" onclick="document.forms['accountForm'].submit();">Accounts</a></li>
+							<li><a href="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.P_Start_Page">Log Out</a></li>
+						<% else %>
+							<li><a href="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.my_log_in">Log In</a></li>
+						<% end if; %>
+						<li><a href="#" onclick="document.forms['createForm'].submit();">Create New Account</a></li>
+        			</ul>
+			</div>
+		</nav>
+		</div>
+
+<!-- Start Page Content --> 
+	<% if plugs_text.count < 2  or discount_days.count < 2 or appliance_type.count < 2 then %>
+	<% raise bad_input; %>
+	<% else %>
+	
+	<div class="col-md-4 col-md-offset-4">
+	
+	<% if discount_days IS NOT NULL then %>
+	<% for i in 1..discount_days.count loop %>
+		<% if discount_days(i) = 'empty' then %>
+		<% else %>
+			<% if discount_days(i) NOT LIKE '__-___-____' then %>
+				<%raise bad_inputD;%>
+			<% else %>
+			<% end if; %>
+		<% end if; %>
+	<%end loop;%>
+	<% else %>
+		<% raise bad_input; %>
+	<% end if; %>
+	
+	
+	<%IF rate_kWh_text >= 0.07 AND rate_kWh_text <= 0.15 THEN%>
+		<p>The rate per kWh value of $<%=rate_kWh_text%> </p>
+		<% insert into setup_params(cph) values (rate_kWh_text); %>
+		<% commit; %>
+	<%ELSE%>
+		<% raise bad_inputKW; %>
+	<%END IF;%>
+	
+	<% if plugs_text IS NOT NULL then %>
+	<p>The devices selected were: </p>
+	<% for i in 1..plugs_text.count loop %>
+		<%if plugs_text(i) = 'empty' then %>
+		<% else %>
+		<%=plugs_text(i)%><br/>
+		<% insert into smart_plug values (plugs_text(i), h_name); %>
+		<% commit; %>
+		<% end if; %>
+	<% end loop; %>
+	<% else %>
+		<% raise bad_input; %>
+	<% end if; %>
+	
+	<% if discount_days IS NOT NULL then %>
+	<p>These are the selected discount days: </p> 
+	<% for i in 1..discount_days.count loop %>
+		<% if discount_days(i) = 'empty' then %>
+		<% else %>
+			<% if discount_days(i) NOT LIKE '__-___-____' then %>
+				<%raise bad_inputD;%>
+			<% else %>
+				<%=discount_days(i)%> <br/>
+				<% insert into setup_params(d_days) values (discount_days(i)); %>
+				<% commit; %>
+			<% end if; %>
+		<% end if; %>
+	<%end loop;%>
+	<% else %>
+		<% raise bad_input; %>
+	<% end if; %>
+	
+	<% if appliance_type IS NOT NULL then %>
+	<p>You selected these appliance types: </p>
+	<% for i in 1..appliance_type.count loop %>
+		<% if appliance_type(i) = 'empty' then %>
+		<% else %>
+		<%= appliance_type(i) %><br/>
+		<% insert into device_type values (appliance_type(i)); %>
+		<% commit; %>
+		<% end if; %>
+	<%end loop;%>
+	<% else %>
+		<% raise bad_input; %>
+	<% end if; %>
+	<% end if; %>
+	</div>
+	<form name="plugForm" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.smart_plug_info_gui" method="POST">
+						<input type="hidden" name="h_type" value=<%=h_type%>>
+						<input type="hidden" name="h_name" value=<%=h_name%>>
+						</form>
+		<form name="deviceForm" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.connect_appliance_gui" method="POST">
+						<input type="hidden" name="h_type" value=<%=h_type%>>
+						<input type="hidden" name="h_name" value=<%=h_name%>>
+						</form>
+		<form name="setupForm" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.systemSetup" method="POST">
+						<input type="hidden" name="h_type" value=<%=h_type%>>
+						<input type="hidden" name="h_name" value=<%=h_name%>>
+						</form>
+		<form name="accountForm" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.switch_account_type" method="POST">
+						<input type="hidden" name="h_type" value=<%=h_type%>><input type="hidden" name="h_name" value=<%=h_name%>>
+						</form>
+		<form name="createForm" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.project_create_account" method="POST">
+						<input type="hidden" name="h_type" value=<%=h_type%>><input type="hidden" name="h_name" value=<%=h_name%>>
+						</form>
+		<form name="reportForm" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.report_splash" method="POST">
+						<input type="hidden" name="h_type" value=<%=h_type%>><input type="hidden" name="h_name" value=<%=h_name%>>
+						</form>
+	
+    <%exception when no_data_found then %>
+	<p>Error!</p>
+	<% when bad_input then %>
+	<div class="col-md-4 col-md-offset-4">
+	<h3>Bad Parameters!</h3>
+	<h4>Must fill out one box in each category!</h4>
+	</div>
+	<% when bad_inputKW then %>
+	<div class="col-md-4 col-md-offset-4">
+	<h3>Bad Parameters!</h3>
+	<h4>Rate per kwH must fall between 0.07 and 0.15</h4>
+	</div>
+	<% when bad_inputD then %>
+	<div class="col-lg-4 col-md-offset-4">
+    <h3>Bad Parameters!</h3>
+	<h4>You have entered an invalid date format.</h4><br>
+	<h4>Please return to the previous page and resubmit.</h4>
+	</div>
+	<%when others then %>
+	<div class="col-lg-4 col-md-offset-4">
+    <h3>Bad Parameters!</h3>
+	<h4>You have entered an invalid date format.</h4><br>
+	<h4>Please return to the previous page and resubmit.</h4>
+	</div>
+<!-- End Page Content -->
+</body>
+</html>
