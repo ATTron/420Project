@@ -1,0 +1,209 @@
+<! DOCTYPE PUBLIC HTML Distributed Consumption Report>
+<%@page language="PL/SQL"%>
+<%@plsql procedure="report5_response"%>
+<%@plsql parameter="s_date" default="null"%>
+<%@plsql parameter="e_date" default="null"%>
+<%@plsql parameter="d_day" default="null"%>
+<%@plsql parameter= "h_type" default="null" %>
+<%@plsql parameter= "h_name" default="null" %>
+<%@plsql parameter="FormButton5"%>
+
+<%!cursor consumed_cr is select user_name, (max(total_power)-min(total_power)) as consumed
+from smart_plug, usage where smart_plug.plug_id = usage.plug_id and record_date <= e_date and 
+record_date >= s_date group by user_name order by consumed DESC; %>
+<%!consumed_row consumed_cr%rowtype; %>
+
+<%!cursor avg_watt_cr is select distinct user_name, avg(wattage) as watts from smart_plug, device 
+where smart_plug.plug_id = device.plug_id group by user_name; %>
+<%!avg_watt_row avg_watt_cr%rowtype; %>
+
+<%! cursor users_cr is select user_name from smart_plug; %>
+<%! users_info users_cr%rowtype; %>
+
+<%!cursor dd_cr is select d_days from setup_params 
+where d_days <= e_date and 
+d_days >= s_date;  %>
+<%!dd_row dd_cr%rowtype; %>
+
+<%!totalConsumed number; %>
+<%!avgWatts number; %>
+<%!totalUsed number; %>
+<%!totalkwh number; %>	
+<%!totalCost number; %>
+<%!rate number; %>
+<%!num_dd number; %>
+<%!totalDays number; %>
+<%!discountAmt number; %>
+<%!overallCost number; %>
+<%!bad_input exception; %>
+<%!bad_inputD exception; %>
+
+<html>
+    <head><title>Report 5</title>
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+		<style>
+		body {background-color: #f2f2f2;}
+		.col-md-4 {background-color: #ffffff !important;
+				   padding: 25px}
+		.jumbotron {background-color: #ffc266 !important;}
+		</style>
+	</head>
+    <body>
+	
+		<div class="jumbotron jumbotron-fluid text-center">
+		<h1 class="display-3">Sabertooth Home Solutions</h1>
+		<!-- Navigation Bar Links -->
+		<nav class="navbar navbar-default">
+			<div class="container-fluid">
+				<div class="navbar-header">
+					<% if h_type IS NOT NULL then %>
+						<a class="navbar-brand" href="#" onclick="document.forms['reportForm'].submit();"><img src="https://img.clipartfest.com/09e7935b4ef1854d0921de66266c785c_chicken-clipart-sabre-engraving-clipart-no-background_1644-946.png" style="max-width:95px;margin-top:-18px;"/></a>
+					<% else %>
+						<a class="navbar-brand" href="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.P_Start_Page"><img src="https://img.clipartfest.com/09e7935b4ef1854d0921de66266c785c_chicken-clipart-sabre-engraving-clipart-no-background_1644-946.png" style="max-width:95px;margin-top:-18px;"/></a>
+					<% end if; %>
+				</div>
+				<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+      				<ul class="nav navbar-nav">
+        				<li><a href="#" onclick="document.forms['plugForm'].submit();">Get Plug Info</a></li>
+						<li><a href="#" onclick="document.forms['deviceForm'].submit();">Attach A Device</a></li>	
+						<li><a href="#" onclick="document.forms['setupForm'].submit();">Configure System</a></li>
+						<% if h_name IS NOT NULL then %>
+							<li><a><%= h_name %></a></li>
+							<% if h_type = 1 then %>
+								<li><a href="#" onclick="document.forms['accountForm'].submit();">Accounts</a></li>
+							<% end if; %>
+							<li><a href="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.P_Start_Page">Log Out</a></li>
+						<% else %>
+							<li><a href="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.my_log_in">Log In</a></li>
+						<% end if; %>
+						<li><a href="#" onclick="document.forms['createForm'].submit();">Create New Account</a></li>
+        			</ul>
+			</div>
+		</nav>
+		</div>
+		
+		
+		<% if s_date IS NULL or e_date IS NULL or d_day IS NULL then %>
+			<% raise bad_input; %>
+		<% else %>
+			<% if s_date NOT LIKE '__-___-__' and e_date NOT LIKE '__-___-__' then %>
+				<% raise bad_inputD; %>
+			<% end if; %>
+		<% select cph into rate from setup_params where cph IS NOT NULL; %>
+		<% select count(d_days) into num_dd from setup_params 
+		where d_days <= e_date and 
+		d_days >= s_date; %>
+		<% select to_number(substr((max(record_date) - min(record_date)), 1, INSTR((max(record_date) - min(record_date)), ' ') -1)) into totalDays 
+		from usage; %>
+		<% discountAmt := 0.20; %>
+		<h1><center>Report Successful Completed!</center></h1>
+		<h3><center>Showing data for time between <%=s_date%> and <%=e_date%></center></h3>
+		
+		<% totalConsumed := 0; %>
+		<% open consumed_cr; %>
+		<% loop %>
+		<% fetch consumed_cr into consumed_row; %>
+		<% exit when consumed_cr%notfound; %>
+			<% totalConsumed := totalConsumed + consumed_row.consumed; %>
+		<% end loop; %>
+		<% close consumed_cr; %>
+		
+		<% totalUsed := 0; %>
+		<% open avg_watt_cr; %>
+		<% loop %>
+		<% fetch avg_watt_cr into avg_watt_row; %>
+		<% exit when avg_watt_cr%notfound; %>
+			<% totalUsed := totalUsed + avg_watt_row.watts; %>
+		<% end loop; %>
+		<% close avg_watt_cr; %>
+		
+		<% if num_dd > 0  and d_day = 'Y' then %>
+			<% for dd_row in dd_cr loop %>
+			<center>
+				<p style="color:red;"><%=dd_row.d_days%> found!</p>
+			<% end loop; %>
+			</center>
+			<p><center><%=num_dd%> found! Processing discount . . .</center></p>
+		<% elsif d_day = 'Y' then %>
+			<p><center>No discount days to process for this time frame!</center></p>
+		<% end if; %>
+		
+		<% avgWatts := 0; %>
+		<% overallCost := 0; %>
+        <table class = "table table-hover">
+		<tr><th>User</th><th>Amount Consumed (kwH)</th><th>Cost</th></tr>
+		<% open avg_watt_cr; %>
+		<% loop %>
+		<% fetch avg_watt_cr into avg_watt_row; %>
+		<% exit when avg_watt_cr%notfound; %>
+			<% avgWatts := (avg_watt_row.watts / totalUsed); %>
+			<% totalkwh := (avgWatts * totalConsumed); %>
+			<% totalCost := (totalkwh * rate); %>
+			<% if d_day = 'N' then %>
+			<% overallCost := (overallCost + totalCost); %>
+				<tr><td><%=avg_watt_row.user_name%></td><td><%=ROUND(totalkwh, 4)%></td><td><%=ROUND(totalCost, 2)%></td></tr>
+			<% elsif d_day = 'Y' and num_dd > 0 then %>
+					<% discountAmt := (totalCost * discountAmt); %>
+					<% discountAmt := (discountAmt * num_dd); %>
+					<% discountAmt := ((num_dd/totalDays) * discountAmt); %>
+					<% totalCost := (totalCost - discountAmt); %>
+					<% overallCost := (overallCost + totalCost); %>
+					<tr><td><%=avg_watt_row.user_name%></td><td><%=ROUND(totalkwh, 4)%></td><td><%=ROUND(totalCost, 2)%></td></tr>
+					<% discountAmt := 0.20; %>
+			<% else %>
+				<% overallCost := (overallCost + totalCost); %>
+				<tr><td><%=avg_watt_row.user_name%></td><td><%=ROUND(totalkwh, 4)%></td><td><%=ROUND(totalCost, 2)%></td></tr>
+			<% end if; %>
+		<% end loop; %>
+		<% close avg_watt_cr; %>
+		</table><br />
+		<center>
+		<h4>Total KWh consumed during this time period: <%=ROUND(totalConsumed, 4)%> KWh</h2>
+		<h4>Cost of total KWh: $ <%=ROUND(overallCost, 2)%></h2>
+		</center>
+		<div class="col-md-4 col-md-offset-4">
+			<h4>Reddest Users: </h4>
+			<ol>
+				<% for avg_watt_row in avg_watt_cr loop %>
+					<li><%=avg_watt_row.user_name %></li>
+				<% end loop; %>
+			</ol>
+		</div>
+		<% end if; %>
+		<form name="plugForm" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.smart_plug_info_gui" method="POST">
+						<input type="hidden" name="h_type" value=<%=h_type%>>
+						<input type="hidden" name="h_name" value=<%=h_name%>>
+						</form>
+		<form name="deviceForm" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.connect_appliance_gui" method="POST">
+						<input type="hidden" name="h_type" value=<%=h_type%>>
+						<input type="hidden" name="h_name" value=<%=h_name%>>
+						</form>
+		<form name="setupForm" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.systemSetup" method="POST">
+						<input type="hidden" name="h_type" value=<%=h_type%>>
+						<input type="hidden" name="h_name" value=<%=h_name%>>
+						</form>
+		<form name="accountForm" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.switch_account_type" method="POST">
+						<input type="hidden" name="h_type" value=<%=h_type%>><input type="hidden" name="h_name" value=<%=h_name%>>
+						</form>
+		<form name="createForm" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.project_create_account" method="POST">
+						<input type="hidden" name="h_type" value=<%=h_type%>><input type="hidden" name="h_name" value=<%=h_name%>>
+						</form>
+		<form name="reportForm" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.report_splash" method="POST">
+						<input type="hidden" name="h_type" value=<%=h_type%>><input type="hidden" name="h_name" value=<%=h_name%>>
+						</form>
+	</body>
+	<% exception when bad_input then %>
+	<div class="col-md-4 col-md-offset-4">
+	<h3>Bad Parameters!</h3>
+	<p>Please return to the previous page and resubmit your form!</p>
+	</div>
+	<% when bad_inputD then %>
+	<div class="col-md-4 col-md-offset-4">
+	<h3>Invalid Date Format!</h3>
+	<p>Please return to the previous page and resubmit your form!</p>
+	</div>
+	<% when others then %>
+	<%=sqlerrm%>
+</html>

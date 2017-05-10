@@ -1,0 +1,127 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<%@page language="PL/SQL"%>
+<%@plsql procedure="report6_response"%>
+<%@plsql parameter= "h_type" default="null" %>
+<%@plsql parameter= "h_name" default="null" %>
+<%@plsql parameter= "FormButton6" default="null" %>
+
+<%! start_date date;%>
+<%! end_date date;%>
+<%! endOfWeek date; %>
+<%! weekly_power number; %>
+<%! p_in varchar2(200); %>
+
+<%! cursor plugid is select distinct plug_id from usage; %>
+<%! smart_row plugid%rowtype; %> 
+
+
+<head>
+<title>Report 6</title>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+		<style>
+		body {background-color: #f2f2f2;}
+		.col-md-4, .col-md-6 {background-color: #ffffff !important;
+				   padding: 25px}
+		.jumbotron {background-color: #ffc266 !important;}
+		</style>
+</head>
+
+<body>
+<div class="jumbotron jumbotron-fluid text-center">
+		<h1 class="display-3">Sabertooth Home Solutions</h1>
+		<!-- Navigation Bar Links -->
+		<nav class="navbar navbar-default">
+			<div class="container-fluid">
+				<div class="navbar-header">
+					<% if h_type IS NOT NULL then %>
+						<a class="navbar-brand" href="#" onclick="document.forms['reportForm'].submit();"><img src="https://img.clipartfest.com/09e7935b4ef1854d0921de66266c785c_chicken-clipart-sabre-engraving-clipart-no-background_1644-946.png" style="max-width:95px;margin-top:-18px;"/></a>
+					<% else %>
+						<a class="navbar-brand" href="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.P_Start_Page"><img src="https://img.clipartfest.com/09e7935b4ef1854d0921de66266c785c_chicken-clipart-sabre-engraving-clipart-no-background_1644-946.png" style="max-width:95px;margin-top:-18px;"/></a>
+					<% end if; %>
+				</div>
+				<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+      				<ul class="nav navbar-nav">
+        				<li><a href="#" onclick="document.forms['plugForm'].submit();">Get Plug Info</a></li>
+						<li><a href="#" onclick="document.forms['deviceForm'].submit();">Attach A Device</a></li>	
+						<li><a href="#" onclick="document.forms['setupForm'].submit();">Configure System</a></li>
+						<% if h_name IS NOT NULL then %>
+							<li><a><%= h_name %></a></li>
+							<% if h_type = 1 then %>
+								<li><a href="#" onclick="document.forms['accountForm'].submit();">Accounts</a></li>
+							<% end if; %>
+							<li><a href="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.P_Start_Page">Log Out</a></li>
+						<% else %>
+							<li><a href="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.my_log_in">Log In</a></li>
+						<% end if; %>
+						<li><a href="#" onclick="document.forms['createForm'].submit();">Create New Account</a></li>
+        			</ul>
+			</div>
+		</nav>
+		</div>
+		
+<div class="container">
+	<% if h_type IS NULL then %>
+		<h3>You must be signed in!</h3>
+		<p>This page is only accessed when logged in.</p>
+	<% else %>
+	
+	<h3>Smartplugs and their respective amounts total:</h3> 
+
+		<%select min(record_date) into start_date from usage;%>
+		<%select max(record_date) into end_date from usage;%>
+		<% while to_date(end_date) >= to_date(start_date) loop %>
+			<% endOfWeek := to_date(start_date + 7); %>
+			<%! cursor data_cr is select plug_id, (max(total_power) - min(total_power)) as consumed from usage where record_date <= to_date(endOfWeek) and 
+			record_date >= to_date(start_date) group by plug_id; %>
+			<%!data_row data_cr%rowtype; %>
+			<h4 style="color:red;">Showing week for <%=start_date%></h4>
+			<table class="table table-hover">
+			<tr><th>Plug ID</th><th>Amount Consumed KWH</th></tr>
+			<% for data_row in data_cr loop %>
+				<tr><td><%=data_row.plug_id%></td><td><%=data_row.consumed%></td></tr>
+			<% end loop; %>
+			<% for data_row in data_cr loop %>
+				<% p_in := data_row.plug_id; %>
+				<%! cursor dev_cr is select description from device where plug_id = p_in; %>
+				<%! dev_row dev_cr%rowtype; %>
+				<% p_in := data_row.plug_id; %>
+				<tr><th>Attached Appliances to <%=p_in%></th></tr>
+				<% for dev_row in dev_cr loop %>
+				<tr><td colspan=2><%=dev_row.description%></td></tr>
+				<% end loop; %>
+			<% end loop; %>
+			</table>
+			<% start_date := endOfWeek; %>
+		<% end loop; %>
+<%end if;%>
+</div>
+
+
+
+<form name="plugForm" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.smart_plug_info_gui" method="POST">
+						<input type="hidden" name="h_type" value=<%=h_type%>>
+						<input type="hidden" name="h_name" value=<%=h_name%>>
+						</form>
+		<form name="deviceForm" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.connect_appliance_gui" method="POST">
+						<input type="hidden" name="h_type" value=<%=h_type%>>
+						<input type="hidden" name="h_name" value=<%=h_name%>>
+						</form>
+		<form name="setupForm" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.systemSetup" method="POST">
+						<input type="hidden" name="h_type" value=<%=h_type%>>
+						<input type="hidden" name="h_name" value=<%=h_name%>>
+						</form>
+		<form name="accountForm" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.switch_account_type" method="POST">
+						<input type="hidden" name="h_type" value=<%=h_type%>><input type="hidden" name="h_name" value=<%=h_name%>>
+						</form>
+		<form name="createForm" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.project_create_account" method="POST">
+						<input type="hidden" name="h_type" value=<%=h_type%>><input type="hidden" name="h_name" value=<%=h_name%>>
+						</form>
+		<form name="reportForm" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.report_splash" method="POST">
+						<input type="hidden" name="h_type" value=<%=h_type%>><input type="hidden" name="h_name" value=<%=h_name%>>
+						</form>
+<!-- End Page Content -->
+<%exception when others then %>
+<%=sqlerrm %>
+</body>
+</html>

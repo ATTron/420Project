@@ -1,0 +1,191 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html>
+
+<%@page language="PL/SQL"%>
+<%@plsql procedure="report1_response"%>
+
+<%@plsql parameter="plug_in1" default="null"%>
+<%@plsql parameter="s_date1" default="null"%>
+<%@plsql parameter="e_date1" default="null"%>
+<%@plsql parameter="d_day1" default="null"%>
+<%@plsql parameter= "h_type" default="null" %>
+<%@plsql parameter= "h_name" default="null" %>
+<%@plsql parameter="FormButton1" default="null"%>
+
+
+<%! start_day date; %>
+<%! end_day date; %>
+<%! endOfday date; %>
+<%! daily_power number; %>
+<%! plug_in varchar2(200); %>
+<%! rate number;%>
+<%! totalCost number; %>
+<%! testValue varchar2(50); %>
+<%! testConsumed number; %>
+
+<%!num_dd number; %>
+<%!totalDays number; %>
+<%!discountAmt number; %>
+
+<%!cursor dd_cr is select d_days from setup_params 
+where d_days <= e_date1 and 
+d_days >= s_date1;  %>
+<%!dd_row dd_cr%rowtype; %>
+
+<%!bad_input exception; %>
+<%!bad_input_Date exception; %>
+
+<head>
+<title>Report 1</title>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+		<style>
+		body {background-color: #f2f2f2;}
+		.col-md-4, .col-md-6 {background-color: #ffffff !important;
+				   padding: 25px}
+		.jumbotron {background-color: #ffc266 !important;}
+		</style>
+</head>
+
+<body>
+<div class="jumbotron jumbotron-fluid text-center">
+		<h1 class="display-3">Sabertooth Home Solutions</h1>
+		<!-- Navigation Bar Links -->
+		<nav class="navbar navbar-default">
+			<div class="container-fluid">
+				<div class="navbar-header">
+					<% if h_type IS NOT NULL then %>
+						<a class="navbar-brand" href="#" onclick="document.forms['reportForm'].submit();"><img src="https://img.clipartfest.com/09e7935b4ef1854d0921de66266c785c_chicken-clipart-sabre-engraving-clipart-no-background_1644-946.png" style="max-width:95px;margin-top:-18px;"/></a>
+					<% else %>
+						<a class="navbar-brand" href="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.P_Start_Page"><img src="https://img.clipartfest.com/09e7935b4ef1854d0921de66266c785c_chicken-clipart-sabre-engraving-clipart-no-background_1644-946.png" style="max-width:95px;margin-top:-18px;"/></a>
+					<% end if; %>
+				</div>
+				<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+      				<ul class="nav navbar-nav">
+        				<li><a href="#" onclick="document.forms['plugForm'].submit();">Get Plug Info</a></li>
+						<li><a href="#" onclick="document.forms['deviceForm'].submit();">Attach A Device</a></li>
+						<li><a href="#" onclick="document.forms['setupForm'].submit();">Configure System</a></li>
+						<% if h_name IS NOT NULL then %>
+							<li><a><%= h_name %></a></li>
+							<% if h_type = 1 then %>
+								<li><a href="#" onclick="document.forms['accountForm'].submit();">Accounts</a></li>
+							<% end if; %>
+							<li><a href="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.P_Start_Page">Log Out</a></li>
+						<% else %>
+							<li><a href="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.my_log_in">Log In</a></li>
+						<% end if; %>
+						<li><a href="#" onclick="document.forms['createForm'].submit();">Create New Account</a></li>
+        			</ul>
+			</div>
+		</nav>
+		</div>
+
+<% if plug_in1 IS NULL or s_date1 IS NULL or e_date1 IS NULL or d_day1 IS NULL then %>
+	<% raise bad_input; %>
+
+<% if s_date1 NOT LIKE '__-___-__' and e_date1 NOT LIKE '__-___-__' then %>
+	<% raise bad_input_Date; %>
+
+<% end if; %>
+
+<% else %>
+<% select count(d_days) into num_dd from setup_params ; %>
+<% select distinct to_number(substr((to_timestamp(e_date1) - to_timestamp(s_date1)), 1, INSTR((to_timestamp(e_date1) - to_timestamp(s_date1)), ' ') -1)) into totalDays 
+		from usage; %>
+<%select CPH into rate from setup_params
+where CPH is NOT NULL;%>
+<div class="container">
+	<% if h_type IS NULL then %>
+		<h3>You must be signed in!</h3>
+		<p>This page is only accessed when logged in.</p>
+	<% else %>
+
+	<h3>Smartplugs and their respective amounts total:</h3>
+	
+		<% if num_dd > 0  and d_day1 = 'Y' then %>
+			<% for dd_row in dd_cr loop %>
+			<center>
+				<p style="color:red;"><%=dd_row.d_days%> found!</p>
+			<% end loop; %>
+			</center>
+			<p><center><%=num_dd%> found! Processing discount . . .</center></p>
+		<% elsif d_day1 = 'Y' and num_dd <= 0 then %>
+			<p><center>No discount days to process for this time frame!</center></p>
+		<% end if; %>
+
+		<%start_day := s_date1;%>
+		<%end_day := e_date1;%>
+		<% while to_date(end_day) >= to_date(start_day) loop %>
+		<% endOfDay := to_date(start_day + 1); %>
+			<%! cursor plu_cr is select plug_id, (max(total_power) - min(total_power)) as consumed from usage where record_date <= to_date(endOfDay) and
+			record_date >= to_date(start_day) group by plug_id having plug_id = plug_in1; %>
+			<%!plu_row plu_cr%rowtype; %>
+			<%select plug_id, (max(total_power) - min(total_power)) as consumed into testValue, testConsumed from usage where record_date <= to_date(endOfDay) and
+			record_date >= to_date(start_day) group by plug_id having plug_id = plug_in1; %>
+			<% if testValue IS NOT NULL then %>
+			<h4 style="color:red;">Showing for <%=start_day%></h4>
+
+<table class="table table-hover">
+			<tr><th>Plug ID</th><th>Amount Consumed KWH</th><th>Daily Cost</th></tr>
+			<% for plu_row in plu_cr loop %>
+				<%totalCost := 0; %>
+				<%totalCost := (plu_row.consumed * rate);%>
+<% if d_day1 = 'Y' and num_dd > 0 then %>
+					<% discountAmt := (totalCost * discountAmt); %>
+					<% discountAmt := (discountAmt * num_dd); %>
+					<% discountAmt := ((num_dd/totalDays) * discountAmt); %>
+					<% totalCost := (totalCost - discountAmt); %>
+<% discountAmt := 0.20; %>
+<%end if;%>
+				<tr><td><%=plu_row.plug_id%></td><td><%=plu_row.consumed%></td><td><%=totalCost%></td></tr>
+			<% end loop; %>
+			</table>
+			<% start_day := endOfDay; %>
+			<% else %>
+			<% end if; %>
+		<% end loop; %>
+<%end if;%>
+</div>
+<%end if; %>
+
+<form name="plugForm" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.smart_plug_info_gui" method="POST">
+						<input type="hidden" name="h_type" value=<%=h_type%>>
+						<input type="hidden" name="h_name" value=<%=h_name%>>
+						</form>
+		<form name="deviceForm" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.connect_appliance_gui" method="POST">
+						<input type="hidden" name="h_type" value=<%=h_type%>>
+						<input type="hidden" name="h_name" value=<%=h_name%>>
+						</form>
+		<form name="setupForm" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.systemSetup" method="POST">
+						<input type="hidden" name="h_type" value=<%=h_type%>>
+						<input type="hidden" name="h_name" value=<%=h_name%>>
+						</form>
+		<form name="accountForm" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.switch_account_type" method="POST">
+						<input type="hidden" name="h_type" value=<%=h_type%>><input type="hidden" name="h_name" value=<%=h_name%>>
+						</form>
+		<form name="createForm" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.project_create_account" method="POST">
+						<input type="hidden" name="h_type" value=<%=h_type%>><input type="hidden" name="h_name" value=<%=h_name%>>
+						</form>
+		<form name="reportForm" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.report_splash" method="POST">
+						<input type="hidden" name="h_type" value=<%=h_type%>><input type="hidden" name="h_name" value=<%=h_name%>>
+						</form>
+<!-- End Page Content →
+
+
+<% exception when bad_input then %>
+<div class="col-md-4 col-md-offset-4">
+<h3>Bad Parameters!</h3>
+<p>Please return to the previous page and resubmit your form!</p>
+</div>
+<% when bad_input_Date then %>
+<div class="col-md-4 col-md-offset-4">
+<h3>Invalid Date Format!</h3>
+<p>Please return to the previous page and resubmit your form!</p>
+</div>
+
+
+
+<%when others then %>
+<%=sqlerrm %>
+</body>
+</html>

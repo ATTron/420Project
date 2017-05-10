@@ -1,0 +1,327 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html>
+<%@page language= "PL/SQL"%>
+<%@plsql procedure=  "report_splash"%>
+<%@plsql parameter= "h_type" default="null" %>
+<%@plsql parameter= "h_name" default="null" %>
+
+<%!cursor plug_cr is select plug_id from smart_plug; %>
+<%!plug_row plug_cr%rowtype; %>
+
+<%!cursor type_cr is select dev_name from device_type; %>
+<%!type_row type_cr%rowtype; %>
+<%!tabCount number; %>
+
+<%! cursor user_cursor is select user_name from smart_plug; %>
+<%! user_row user_cursor%rowtype; %>
+
+<Head>
+  <title>Account Reports</Title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+		<style>
+		body {background-color: #f2f2f2;}
+		.col-md-4 {background-color: #ffffff !important;
+				   padding: 25px}
+		.jumbotron {background-color: #ffc266 !important;}
+		</style>
+</Head>
+
+<body>
+<div class="jumbotron jumbotron-fluid text-center">
+		<h1 class="display-3">Sabertooth Home Solutions</h1>
+		<!-- Navigation Bar Links -->
+		<nav class="navbar navbar-default">
+			<div class="container-fluid">
+				<div class="navbar-header">
+					<% if h_type IS NOT NULL then %>
+						<a class="navbar-brand" href="#" onclick="document.forms['reportForm'].submit();"><img src="https://img.clipartfest.com/09e7935b4ef1854d0921de66266c785c_chicken-clipart-sabre-engraving-clipart-no-background_1644-946.png" style="max-width:95px;margin-top:-18px;"/></a>
+					<% else %>
+						<a class="navbar-brand" href="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.P_Start_Page"><img src="https://img.clipartfest.com/09e7935b4ef1854d0921de66266c785c_chicken-clipart-sabre-engraving-clipart-no-background_1644-946.png" style="max-width:95px;margin-top:-18px;"/></a>
+					<% end if; %>
+				</div>
+				<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+      				<ul class="nav navbar-nav">
+        				<li><a href="#" onclick="document.forms['plugForm'].submit();">Get Plug Info</a></li>
+						<li><a href="#" onclick="document.forms['deviceForm'].submit();">Attach A Device</a></li>	
+						<li><a href="#" onclick="document.forms['setupForm'].submit();">Configure System</a></li>
+						<% if h_name IS NOT NULL then %>
+							<li><a><%= h_name %></a></li>
+							<% if h_type = 1 then %>
+								<li><a href="#" onclick="document.forms['accountForm'].submit();">Accounts</a></li>
+							<% end if; %>
+							<li><a href="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.P_Start_Page">Log Out</a></li>
+						<% else %>
+							<li><a href="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.my_log_in">Log In</a></li>
+						<% end if; %>
+						<li><a href="#" onclick="document.forms['createForm'].submit();">Create New Account</a></li>
+        			</ul>
+			</div>
+		</nav>
+		</div>
+  <div class="col-md-4 col-md-offset-4">
+  <% select count(*) into tabCount from setup_params; %>
+	<% if h_type IS NOT NULL and tabCount > 0 then %>
+		<h3>Run Reports</h3>
+		
+		<!-- Report 1 Button -->
+		<% if h_type = 0 then %>
+		<button type="button" data-toggle="collapse" data-target="#report1">Report 1</button>
+		<div class="collapse" id="report1">
+			<form action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.report1_response" method="POST">
+				<div class="form-group">
+				Select A Plug:
+					<select name="plug_in1" class="form-control">
+						<% for plug_row in plug_cr loop %>
+							<option name="plug_id1" value="<%=plug_row.plug_id%>"><%=plug_row.plug_id%></option>
+						<% end loop; %>
+					</select>
+				</div>
+				<div class="form-group">
+					Enter Starting Date: (DD-MMM-YY)<input type = "text" class="form-control" name="s_date1">
+					Enter Ending Date: (DD-MMM-YY)<input type = "text" class="form-control" name="e_date1">
+				</div>
+				<div class="form-group">
+					Process Discount Days?
+					<input type="radio" value="Y" name="d_day1"> Yes <input type="radio" value="N" name="d_day1"> No
+				</div>
+				<input type="hidden" name="h_type" value=<%=h_type%>>
+				<input type="hidden" name="h_name" value=<%=h_name%>>
+				<input type="submit" value="Generate Report" name="FormButton1" class="btn btn-primary">
+			</form>
+		</div>
+		<br><br>
+		
+		<!-- Report 2 Button -->
+		<button type="button" data-toggle="collapse" data-target="#report2">Report 2</button>
+		<div class="collapse" id="report2">
+			<form action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.report2_response" method="post">
+				<div class="form-group">
+				Select A Plug:
+					<select name="plug_in" class="form-control">
+						<% for plug_row in plug_cr loop %>
+							<option name="plug_id" value="<%=plug_row.plug_id%>"><%=plug_row.plug_id%></option>
+						<% end loop; %>
+					</select>
+				</div>
+				<div class="form-group">
+					Enter Starting Date: (DD-MMM-YY)<input type = "text" class="form-control" name="s_date">
+					Enter Ending Date: (DD-MMM-YY)<input type = "text" class="form-control" name="e_date">
+				</div>
+				<div class="form-group">
+					Process Discount Days?
+					<input type="radio" value="Y" name="d_day"> Yes <input type="radio" value="N" name="d_day"> No
+				</div>
+				<input type="hidden" name="h_type" value=<%=h_type%>>
+				<input type="hidden" name="h_name" value=<%=h_name%>>
+				<input type="submit" value="Generate Report" name="FormButton2" class="btn btn-primary">
+			</form>
+		</div>
+		<br><br>
+		<% else %>
+		<button type="button" data-toggle="collapse" data-target="#report1">Report 1</button>
+		<div class="collapse" id="report1">
+			<form action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.report1_response" method="POST">
+				<div class="form-group">
+				Select A Plug:
+					<select name="plug_in1" class="form-control">
+						<% for plug_row in plug_cr loop %>
+							<option name="plug_id1" value="<%=plug_row.plug_id%>"><%=plug_row.plug_id%></option>
+						<% end loop; %>
+					</select>
+				</div>
+				<div class="form-group">
+					Enter Starting Date: (DD-MMM-YY)<input type = "text" class="form-control" name="s_date1">
+					Enter Ending Date: (DD-MMM-YY)<input type = "text" class="form-control" name="e_date1">
+				</div>
+				<div class="form-group">
+					Process Discount Days?
+					<input type="radio" value="Y" name="d_day1"> Yes <input type="radio" value="N" name="d_day1"> No
+				</div>
+				<input type="hidden" name="h_type" value=<%=h_type%>>
+				<input type="hidden" name="h_name" value=<%=h_name%>>
+				<input type="submit" value="Generate Report" name="FormButton1" class="btn btn-primary">
+			</form>
+		</div>
+		<br><br>
+		
+		<!-- Report 2 Button -->
+		<button type="button" data-toggle="collapse" data-target="#report2">Report 2</button>
+		<div class="collapse" id="report2">
+			<form action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.report2_response" method="post">
+				<div class="form-group">
+				Select A Plug:
+					<select name="plug_in" class="form-control">
+						<% for plug_row in plug_cr loop %>
+							<option name="plug_id" value="<%=plug_row.plug_id%>"><%=plug_row.plug_id%></option>
+						<% end loop; %>
+					</select>
+				</div>
+				<div class="form-group">
+					Enter Starting Date: (DD-MMM-YY)<input type = "text" class="form-control" name="s_date">
+					Enter Ending Date: (DD-MMM-YY)<input type = "text" class="form-control" name="e_date">
+				</div>
+				<div class="form-group">
+					Process Discount Days?
+					<input type="radio" value="Y" name="d_day"> Yes <input type="radio" value="N" name="d_day"> No
+				</div>
+				<input type="hidden" name="h_type" value=<%=h_type%>>
+				<input type="hidden" name="h_name" value=<%=h_name%>>
+				<input type="submit" value="Generate Report" name="FormButton2" class="btn btn-primary">
+			</form>
+		</div>
+		<br><br>
+		<!-- Report 3 Button -->
+		<button type="button" data-toggle="collapse" data-target="#report3">Report 3</button>
+		<div class="collapse" id="report3">
+			<form action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.response3" method="POST">
+			<select name="plug_dropdown" >
+			<option value="Default">Please select a plug</option>
+				<%for plug_row in plug_cr loop%>
+					<option value = "<%= plug_row.plug_id%>"><%= plug_row.plug_id%></option>
+				<%end loop;%>
+			</select> <br/>
+			
+			
+			Start Date(DD-MMM-YY):<input type = "text" class="form-control" name = "start_date"/>
+			End Date(DD-MMM-YY):<input type = "text" class="form-control" name = "end_date"/>
+
+			
+			<input type="hidden" name="h_type" value=<%=h_type%>>
+			<input type="hidden" name="h_name" value=<%=h_name%>>
+			<input class="btn btn-primary" type="submit" value = "Submit" name = "Submit_button"/>
+		</form>
+		</div>
+		<br><br>
+		
+		<!-- Report 4 Button --> 
+		<button type="button" data-toggle="collapse" data-target="#report4">Report 4</button>
+		<div class="collapse" id="report4">
+			<form action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.report4_response" method="post">
+				<select name="user_dropdown" >
+			<option value="Default">Please select a user</option>
+				<%for user_row in user_cursor loop%>
+					<option value = "<%= user_row.user_name%>"><%= user_row.user_name%></option>
+				<%end loop;%>
+			</select> <br/>
+			
+			
+			Start Date(DD-MMM-YY):<input type = "text" class="form-control" name = "start_date"/>
+			End Date(DD-MMM-YY):<input type = "text" class="form-control" name = "end_date"/>
+				<input type="hidden" name="h_type" value=<%=h_type%>>
+				<input type="hidden" name="h_name" value=<%=h_name%>>
+				<input type="submit" value="Generate Report" name="FormButton4" class="btn btn-primary">
+			</form>
+		</div>
+		<br><br>
+		
+		<!-- Report 5 Button -->
+		<button type="button" data-toggle="collapse" data-target="#report5">Report 5</button>
+		<div class="collapse" id="report5">
+			<form action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.report5_response" method="post">	
+				<div class="form-group">
+					Enter Starting Date: (DD-MMM-YY)<input type = "text" class="form-control" name="s_date">
+					Enter Ending Date: (DD-MMM-YY)<input type = "text" class="form-control" name="e_date">
+				</div>
+				<div class="form-group">
+					Process Discount Days?
+					<input type="radio" value="Y" name="d_day"> Yes <input type="radio" value="N" name="d_day"> No
+				</div>
+				<input type="hidden" name="h_type" value=<%=h_type%>>
+				<input type="hidden" name="h_name" value=<%=h_name%>>
+				<input type="submit" value="Generate Report" name="FormButton5" class="btn btn-primary">
+			</form>
+		</div>
+		<br><br>
+		
+		<!-- Report 6 Button -->
+		<button type="button" data-toggle="collapse" data-target="#report6">Report 6</button>
+		<div class="collapse" id="report6">
+		<br><br>
+			<form action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.report6_response" method="post">	
+				<input type="hidden" name="h_type" value=<%=h_type%>>
+				<input type="hidden" name="h_name" value=<%=h_name%>>
+				<input type="submit" value="Generate Report" name="FormButton6" class="btn btn-primary">
+			</form>
+		</div>
+		<br><br>
+		
+		<!-- Report 7 Button -->
+		<button type="button" data-toggle="collapse" data-target="#report7">Report 7</button>
+		<div class="collapse" id="report7">
+		<br><br>
+			<form action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.report7_response" method="post">	
+				<input type="hidden" name="h_type" value=<%=h_type%>>
+				<input type="hidden" name="h_name" value=<%=h_name%>>
+				<input type="submit" value="Generate Report" name="FormButton7" class="btn btn-primary">
+			</form>
+		</div>
+		<br><br>
+		
+		<!-- Report 8 Button --> 
+		<button type="button" data-toggle="collapse" data-target="#report8">Report 8</button>
+		<div class="collapse" id="report8">
+		<br><br>
+			<form action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.average_activity" method="post">	
+				<input type="hidden" name="h_type" value=<%=h_type%>>
+				<input type="hidden" name="h_name" value=<%=h_name%>>
+				<input type="submit" value="Generate Report" name="FormButton8" class="btn btn-primary">
+			</form>
+		</div>
+		<br><br>
+		
+		<!-- Report 9 Button -->
+		<button type="button" data-toggle="collapse" data-target="#report9">Report 9</button>
+		<div class="collapse" id="report9">
+			<form action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.report9_response" method="post">
+				<div class="form-group">
+					<strong>Optional: </strong>
+					<select name="optionalType" class="form-control">
+					<option value="Default">Select an appliance type</option>
+						<% for type_row in type_cr loop %>
+							<option name="dev_type" value="<%=type_row.dev_name%>"><%=type_row.dev_name%></option>
+						<% end loop; %>
+					</select>
+				</div>
+				<input type="hidden" name="h_type" value=<%=h_type%>>
+				<input type="hidden" name="h_name" value=<%=h_name%>>
+				<input type="submit" value="Generate Report" name="FormButton9" class="btn btn-primary">
+			</form>
+		</div>
+		<%end if; %>
+	<% else %>
+		<h3>You must be signed in to access reports!</h3>
+	<% end if; %>
+  </div>
+  <form name="plugForm" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.smart_plug_info_gui" method="POST">
+						<input type="hidden" name="h_type" value=<%=h_type%>>
+						<input type="hidden" name="h_name" value=<%=h_name%>>
+						</form>
+		<form name="deviceForm" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.connect_appliance_gui" method="POST">
+						<input type="hidden" name="h_type" value=<%=h_type%>>
+						<input type="hidden" name="h_name" value=<%=h_name%>>
+						</form>
+		<form name="setupForm" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.systemSetup" method="POST">
+						<input type="hidden" name="h_type" value=<%=h_type%>>
+						<input type="hidden" name="h_name" value=<%=h_name%>>
+						</form>
+		<form name="accountForm" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.switch_account_type" method="POST">
+						<input type="hidden" name="h_type" value=<%=h_type%>><input type="hidden" name="h_name" value=<%=h_name%>>
+						</form>
+		<form name="createForm" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.project_create_account" method="POST">
+						<input type="hidden" name="h_type" value=<%=h_type%>><input type="hidden" name="h_name" value=<%=h_name%>>
+						</form>
+		<form name="reportForm" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.report_splash" method="POST">
+						<input type="hidden" name="h_type" value=<%=h_type%>><input type="hidden" name="h_name" value=<%=h_name%>>
+						</form>
+		<%exception when no_data_found then %>
+		<h3>You must run system setup before generating reports!</h3>
+</body>
+</html>
+
+
+
+
+

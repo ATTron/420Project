@@ -1,0 +1,199 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+
+<%@page language="PL/SQL"%>
+<%@plsql procedure="average_activity"%>
+<%@plsql parameter= "h_type" default="null" %>
+<%@plsql parameter= "h_name" default="null" %>
+<%@plsql parameter="formsbutton_1" default="null"%>
+
+<%!
+time12to2am USAGE.TOTAL_POWER%type;
+time2to4am USAGE.TOTAL_POWER%type;
+time4to6am USAGE.TOTAL_POWER%type;
+time6to8am USAGE.TOTAL_POWER%type;
+time8to10am USAGE.TOTAL_POWER%type;
+time10amto12pm USAGE.TOTAL_POWER%type;
+time12to2pm USAGE.TOTAL_POWER%type;
+time2to4pm USAGE.TOTAL_POWER%type;
+time4to6pm USAGE.TOTAL_POWER%type;
+time6to8pm USAGE.TOTAL_POWER%type;
+time8to10pm USAGE.TOTAL_POWER%type;
+time10to12pm USAGE.TOTAL_POWER%type;
+%>
+
+
+<%
+select ROUND(avg(TOTAL_POWER),2)
+into time12to2am
+from USAGE
+where RECORD_DATE like '% 12%' or RECORD_DATE like '% 01%'  and RECORD_DATE like '% AM%' ;
+%>
+
+<%
+select ROUND(avg(TOTAL_POWER),2)
+into time2to4am
+from USAGE
+where RECORD_DATE like '% 02%' or RECORD_DATE like '% 03%' and RECORD_DATE like '% AM%' ;
+%>
+
+<%
+select ROUND(avg(TOTAL_POWER),2)
+into time4to6am
+from USAGE
+where RECORD_DATE like '% 04%' or RECORD_DATE like '% 05%' and RECORD_DATE like '% AM%' ;
+%>
+
+<%
+select ROUND(avg(TOTAL_POWER),2)
+into time6to8am
+from USAGE
+where RECORD_DATE like '% 06%' or RECORD_DATE like '% 07%' and RECORD_DATE like '% AM%' ;
+%>
+
+<%
+select ROUND(avg(TOTAL_POWER),2)
+into time8to10am
+from USAGE
+where RECORD_DATE like '% 08%' or RECORD_DATE like '% 09%' and RECORD_DATE like '% AM%' ;
+%>
+
+<%
+select ROUND(avg(TOTAL_POWER),2)
+into time10amto12pm
+from USAGE
+where RECORD_DATE like '% 10%' or RECORD_DATE like '% 11%' and RECORD_DATE like '% AM%' ;
+%>
+
+<%
+select ROUND(avg(TOTAL_POWER),2)
+into time12to2pm
+from USAGE
+where RECORD_DATE like '% 12%' or RECORD_DATE like '% 01%' and RECORD_DATE like '%PM%' ;
+%>
+
+<%
+select ROUND(avg(TOTAL_POWER),2)
+into time2to4pm
+from USAGE
+where RECORD_DATE like '% 02%' or RECORD_DATE like '% 03%' and RECORD_DATE like '%PM%' ;
+%>
+
+<%
+select ROUND(avg(TOTAL_POWER),2)
+into time4to6pm
+from USAGE
+where RECORD_DATE like '% 04%' or RECORD_DATE like '% 05%' and RECORD_DATE like '%PM%' ;
+%>
+
+<%
+select ROUND(avg(TOTAL_POWER),2)
+into time6to8pm
+from USAGE
+where RECORD_DATE like '% 06%' or RECORD_DATE like '% 07%' and RECORD_DATE like '%PM%' ;
+%>
+
+<%
+select ROUND(avg(TOTAL_POWER),2)
+into time8to10pm
+from USAGE
+where RECORD_DATE like '% 08%' or RECORD_DATE like '% 09%' and RECORD_DATE like '%PM%' ;
+%>
+
+<%
+select ROUND(avg(TOTAL_POWER),2)
+into time10to12pm
+from USAGE
+where RECORD_DATE like '% 10%' or RECORD_DATE like '% 11%' and RECORD_DATE like '%PM%' ;
+%>
+
+
+<head>
+<title>Average Activity</title>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+	<style>
+	body {background-color: #f2f2f2;}
+	.col-md-4 {background-color: #ffffff !important;
+			   padding: 25px}
+	.jumbotron {background-color: #ffc266 !important;}
+	</style>
+</head>
+<body>
+<div class="jumbotron jumbotron-fluid text-center">
+		<h1 class="display-3">Sabertooth Home Solutions</h1>
+		<!-- Navigation Bar Links -->
+		<nav class="navbar navbar-default">
+			<div class="container-fluid">
+				<div class="navbar-header">
+					<% if h_type IS NOT NULL then %>
+						<a class="navbar-brand" href="#" onclick="document.forms['reportForm'].submit();"><img src="https://img.clipartfest.com/09e7935b4ef1854d0921de66266c785c_chicken-clipart-sabre-engraving-clipart-no-background_1644-946.png" style="max-width:95px;margin-top:-18px;"/></a>
+					<% else %>
+						<a class="navbar-brand" href="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.P_Start_Page"><img src="https://img.clipartfest.com/09e7935b4ef1854d0921de66266c785c_chicken-clipart-sabre-engraving-clipart-no-background_1644-946.png" style="max-width:95px;margin-top:-18px;"/></a>
+					<% end if; %>
+				</div>
+				<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+      				<ul class="nav navbar-nav">
+        				<li><a href="#" onclick="document.forms['plugForm'].submit();">Get Plug Info</a></li>
+						<li><a href="#" onclick="document.forms['deviceForm'].submit();">Attach A Device</a></li>	
+						<li><a href="#" onclick="document.forms['setupForm'].submit();">Configure System</a></li>
+						<% if h_name IS NOT NULL then %>
+							<li><a><%= h_name %></a></li>
+							<% if h_type = 1 then %>
+								<li><a href="#" onclick="document.forms['accountForm'].submit();">Accounts</a></li>
+							<% end if; %>
+							<li><a href="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.P_Start_Page">Log Out</a></li>
+						<% else %>
+							<li><a href="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.my_log_in">Log In</a></li>
+						<% end if; %>
+						<li><a href="#" onclick="document.forms['createForm'].submit();">Create New Account</a></li>
+        			</ul>
+			</div>
+		</nav>
+		</div>
+<div align="center"><p><h2>Average Activity</h2></p>
+
+<table border = "1" class="table table-hover">
+<tr><th>Time</th><th>Actvity</th></tr>
+<tr><td> From 12am to 2am:</td> <td><%=time12to2am%> kWh</td></tr>
+<tr><td> From 2am to 4am:</td> <td><%=time2to4am%> kWh</td></tr> 
+<tr><td> From 4am to 6am:</td>  <td><%=time4to6am%> kWh</td></tr> 
+<tr><td> From 6am to 8am:</td>  <td><%=time6to8am%> kWh</td></tr> 
+<tr><td> From 8am to 10am:</td> <td><%=time8to10am%> kWh</td></tr> 
+<tr><td> From 10am to 12pm:</td> <td><%=time10amto12pm%> kWh</td></tr> 
+<tr><td> From 12pm to 2pm:</td> <td><%=time12to2pm%> kWh</td></tr> 
+<tr><td> From 2pm to 4pm:</td>  <td><%=time2to4pm%> kWh</td></tr> 
+<tr><td> From 4pm to 6pm:</td>  <td><%=time4to6pm%> kWh</td></tr> 
+<tr><td> From 6pm to 8pm:</td>  <td><%=time6to8pm%> kWh</td></tr>
+<tr><td> From 8pm to 10pm:</td> <td><%=time8to10pm%> kWh</td></tr> 
+<tr><td> From 10pm to 12pm:</td> <td><%=time10to12pm%> kWh</td></tr> 
+
+</table>
+
+
+<form name="plugForm" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.smart_plug_info_gui" method="POST">
+						<input type="hidden" name="h_type" value=<%=h_type%>>
+						<input type="hidden" name="h_name" value=<%=h_name%>>
+						</form>
+		<form name="deviceForm" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.connect_appliance_gui" method="POST">
+						<input type="hidden" name="h_type" value=<%=h_type%>>
+						<input type="hidden" name="h_name" value=<%=h_name%>>
+						</form>
+		<form name="setupForm" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.systemSetup" method="POST">
+						<input type="hidden" name="h_type" value=<%=h_type%>>
+						<input type="hidden" name="h_name" value=<%=h_name%>>
+						</form>
+		<form name="accountForm" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.switch_account_type" method="POST">
+						<input type="hidden" name="h_type" value=<%=h_type%>><input type="hidden" name="h_name" value=<%=h_name%>>
+						</form>
+		<form name="createForm" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.project_create_account" method="POST">
+						<input type="hidden" name="h_type" value=<%=h_type%>><input type="hidden" name="h_name" value=<%=h_name%>>
+						</form>
+		<form name="reportForm" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.report_splash" method="POST">
+						<input type="hidden" name="h_type" value=<%=h_type%>><input type="hidden" name="h_name" value=<%=h_name%>>
+						</form>
+<%exception when others then%>
+<%=sqlerrm%>
+</body>
+</html>

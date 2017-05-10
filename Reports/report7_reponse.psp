@@ -1,0 +1,134 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+	<%@page language= "PL/SQL"%>
+	<%@plsql procedure= "report7_response"%>
+	<%@plsql parameter= "h_type" default="null" %>
+	<%@plsql parameter= "h_name" default="null" %>
+	<%@plsql parameter= "FormButton7" default="null" %>
+
+	<%!cursor avg_watt_cr is select avg(wattage) as watts, type from device where rownum <= 3 group by type order by watts desc;%>
+	<%!avg_watt_row avg_watt_cr%rowtype; %>
+	
+	<%!cursor consumed_cr is select (max(total_power) - min(total_power)) as consumed, plug_id from usage group by plug_id; %>
+	<%!consumed_row consumed_cr%rowtype; %>
+	
+	<%!startDate timestamp; %>
+	<%!endDate timestamp; %>
+	
+	<%!totalConsumed number; %>
+	<%!avgWatts number; %>
+	<%!totalUsed number; %>
+	<%!totalkwh number; %>
+	
+	<%!totalCost number; %>
+	<%!rate number; %>
+	
+	<head>
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+		<style>
+		body {background-color: #f2f2f2;}
+		.col-md-4 {background-color: #ffffff !important;
+				   padding: 25px}
+		.jumbotron {background-color: #ffc266 !important;}
+		</style>
+		<title>Report 7</title>
+	</head>
+	<body>
+		<div class="jumbotron jumbotron-fluid text-center">
+		<h1 class="display-3">Sabertooth Home Solutions</h1>
+		<!-- Navigation Bar Links -->
+		<nav class="navbar navbar-default">
+			<div class="container-fluid">
+				<div class="navbar-header">
+					<% if h_type IS NOT NULL then %>
+						<a class="navbar-brand" href="#" onclick="document.forms['reportForm'].submit();"><img src="https://img.clipartfest.com/09e7935b4ef1854d0921de66266c785c_chicken-clipart-sabre-engraving-clipart-no-background_1644-946.png" style="max-width:95px;margin-top:-18px;"/></a>
+					<% else %>
+						<a class="navbar-brand" href="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.P_Start_Page"><img src="https://img.clipartfest.com/09e7935b4ef1854d0921de66266c785c_chicken-clipart-sabre-engraving-clipart-no-background_1644-946.png" style="max-width:95px;margin-top:-18px;"/></a>
+					<% end if; %>
+				</div>
+				<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+      				<ul class="nav navbar-nav">
+        				<li><a href="#" onclick="document.forms['plugForm'].submit();">Get Plug Info</a></li>
+						<li><a href="#" onclick="document.forms['deviceForm'].submit();">Attach A Device</a></li>	
+						<li><a href="#" onclick="document.forms['setupForm'].submit();">Configure System</a></li>
+						<% if h_name IS NOT NULL then %>
+							<li><a><%= h_name %></a></li>
+							<% if h_type = 1 then %>
+								<li><a href="#" onclick="document.forms['accountForm'].submit();">Accounts</a></li>
+							<% end if; %>
+							<li><a href="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.P_Start_Page">Log Out</a></li>
+						<% else %>
+							<li><a href="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.my_log_in">Log In</a></li>
+						<% end if; %>
+						<li><a href="#" onclick="document.forms['createForm'].submit();">Create New Account</a></li>
+        			</ul>
+			</div>
+		</nav>
+		</div>
+		<% select cph into rate from setup_params where cph IS NOT NULL; %>
+		<!-- //TODO: add if statement to show success -->
+		<h1><center>Report Successful Completed!</center></h1>
+		
+		<% totalConsumed := 0; %>
+		<% open consumed_cr; %>
+		<% loop %>
+		<% fetch consumed_cr into consumed_row; %>
+		<% exit when consumed_cr%notfound; %>
+			<% totalConsumed := totalConsumed + consumed_row.consumed; %>
+		<% end loop; %>
+		<% close consumed_cr; %>
+		
+		<% totalUsed := 0; %>
+		<% open avg_watt_cr; %>
+		<% loop %>
+		<% fetch avg_watt_cr into avg_watt_row; %>
+		<% exit when avg_watt_cr%notfound; %>
+			<% totalUsed := totalUsed + avg_watt_row.watts; %>
+		<% end loop; %>
+		<% close avg_watt_cr; %>
+		
+		
+		<% avgWatts := 0; %>
+		<table class="table table-hover">
+		<tr><th>Appliance Type</th><th>Total Power Used(kwH)</th><th>Total $ Amount</th></tr>
+		<% open avg_watt_cr; %>
+		<% loop %>
+		<% fetch avg_watt_cr into avg_watt_row; %>
+		<% exit when avg_watt_cr%notfound; %>
+			<% avgWatts := (avg_watt_row.watts / totalUsed); %>
+			<% totalkwh := (avgWatts * totalConsumed); %>
+			<% totalCost := (totalkwh * rate); %>
+
+				<tr><td><%=avg_watt_row.type%></td><td><%=ROUND(totalkwh, 4)%></td><td>$<%=ROUND(totalCost, 2)%></td></tr>
+		<% end loop; %>
+		<% close avg_watt_cr; %>
+		
+		</table>
+		
+		<form name="plugForm" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.smart_plug_info_gui" method="POST">
+						<input type="hidden" name="h_type" value=<%=h_type%>>
+						<input type="hidden" name="h_name" value=<%=h_name%>>
+						</form>
+		<form name="deviceForm" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.connect_appliance_gui" method="POST">
+						<input type="hidden" name="h_type" value=<%=h_type%>>
+						<input type="hidden" name="h_name" value=<%=h_name%>>
+						</form>
+		<form name="setupForm" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.systemSetup" method="POST">
+						<input type="hidden" name="h_type" value=<%=h_type%>>
+						<input type="hidden" name="h_name" value=<%=h_name%>>
+						</form>
+		<form name="accountForm" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.switch_account_type" method="POST">
+						<input type="hidden" name="h_type" value=<%=h_type%>><input type="hidden" name="h_name" value=<%=h_name%>>
+						</form>
+		<form name="createForm" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.project_create_account" method="POST">
+						<input type="hidden" name="h_type" value=<%=h_type%>><input type="hidden" name="h_name" value=<%=h_name%>>
+						</form>
+		<form name="reportForm" action="http://oracle.is.umbc.edu:8080/classpsp/IS420_TEAM1.report_splash" method="POST">
+						<input type="hidden" name="h_type" value=<%=h_type%>><input type="hidden" name="h_name" value=<%=h_name%>>
+						</form>
+		<exception when others then %>
+		<%= sqlerrm %>
+		
+		<!-- End Page Content -->
+	</body>
+</html>
